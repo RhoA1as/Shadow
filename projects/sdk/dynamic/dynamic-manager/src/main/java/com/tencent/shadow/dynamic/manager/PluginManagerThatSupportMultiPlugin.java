@@ -2,10 +2,12 @@ package com.tencent.shadow.dynamic.manager;
 
 import static android.content.Context.BIND_AUTO_CREATE;
 
+import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Build;
 import android.os.DeadObjectException;
 import android.os.IBinder;
 import android.os.Looper;
@@ -71,22 +73,26 @@ public abstract class PluginManagerThatSupportMultiPlugin extends BaseDynamicPlu
         //do nothing
     }
 
+
+    @SuppressLint("NewApi")
     public void bindPluginProcessService(final String serviceName, final String partKey) {
-        if (mServiceConnectingMap.get(partKey) == null) {
-            mServiceConnectingMap.put(partKey, false);
-        }
-        if (mServiceConnectingMap.get(partKey)) {
+        if (mServiceConnectingMap.getOrDefault(partKey, false)) {
             if (mLogger.isInfoEnabled()) {
                 mLogger.info("pps service connecting");
             }
             return;
         }
-        if (mLogger.isInfoEnabled()) {
-            mLogger.info("bindPluginProcessService " + serviceName);
-        }
-        mConnectCountDownLatchMap.put(partKey, new CountDownLatch(1));
+        synchronized (this) {
+            if (mServiceConnectingMap.get(partKey) == null) {
+                mServiceConnectingMap.put(partKey, false);
+            }
+            if (mLogger.isInfoEnabled()) {
+                mLogger.info("bindPluginProcessService " + serviceName);
+            }
+            mConnectCountDownLatchMap.put(partKey, new CountDownLatch(1));
 
-        mServiceConnectingMap.put(partKey, true);
+            mServiceConnectingMap.put(partKey, true);
+        }
 
         final CountDownLatch startBindingLatch = new CountDownLatch(1);
         final boolean[] asyncResult = new boolean[1];
