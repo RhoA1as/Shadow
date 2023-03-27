@@ -82,10 +82,10 @@ public abstract class PluginManagerThatSupportMultiPlugin extends BaseDynamicPlu
             }
             return;
         }
+        if (mLogger.isInfoEnabled()) {
+            mLogger.info("bindPluginProcessService " + serviceName);
+        }
         synchronized (this) {
-            if (mLogger.isInfoEnabled()) {
-                mLogger.info("bindPluginProcessService " + serviceName);
-            }
             if (mServiceConnectingMap.getOrDefault(partKey, false)) {
                 if (mLogger.isInfoEnabled()) {
                     mLogger.info("pps service connecting");
